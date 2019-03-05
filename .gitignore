@@ -1,0 +1,18 @@
+# Config files
+*.ini
+*.json
+
+# Keep example config
+!example_*
+
+# Log files
+*.log*
+
+# PyCharm
+.idea/*
+
+# F-ing Apple
+.DS_Store
+
+# Meh push Patches O'Houlihan for extra example
+!patchesohoulihanbot_config.json

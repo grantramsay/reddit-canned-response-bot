@@ -1,0 +1,78 @@
+{
+  "subreddits": [
+    "test",
+    "funny"
+  ],
+  "canned_responses": [
+    {
+      "search_keys": [
+        "\"lame\""
+      ],
+      "comment_regexes": [
+        "^this is (really |soo |totally )*lame\\.*$"
+      ],
+      "response": "Your face is lame"
+    },
+    {
+      "search_keys": [
+        "\"looser\""
+      ],
+      "comment_regexes": [
+        "(you are|you're) (a|an) (absolute |total |full on |fucking )*looser"
+      ],
+      "response": "Pfft you're a looser",
+      "ignore_regexes": [
+        "but",
+        "like"
+      ],
+      "max_chars": 50
+    }
+  ],
+  "postfix": "\n\nI am a bot",
+  "tests": [
+    {
+      "comment": "This is lame",
+      "reply": "Your face is lame"
+    },
+    {
+      "comment": "This is totally lame",
+      "reply": "Your face is lame"
+    },
+    {
+      "comment": "This is lame...",
+      "reply": "Your face is lame"
+    },
+    {
+      "comment": "This is not lame",
+      "reply": null
+    },
+    {
+      "comment": "This is lame and blah blah etc etc",
+      "reply": null
+    },
+    {
+      "comment": "You are a looser",
+      "reply": "Pfft you're a looser"
+    },
+    {
+      "comment": "You're a looser",
+      "reply": "Pfft you're a looser"
+    },
+    {
+      "comment": "You're an absolute total fucking looser",
+      "reply": "Pfft you're a looser"
+    },
+    {
+      "comment": "You're not a looser",
+      "reply": null
+    },
+    {
+      "comment": "You are looser, but so am I",
+      "reply": null
+    },
+    {
+      "comment": "Well you're a looser. We all have issue in our life but we can resolve them blah blah etc etc...",
+      "reply": null
+    }
+  ]
+}

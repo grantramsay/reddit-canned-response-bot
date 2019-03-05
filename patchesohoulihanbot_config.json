@@ -1,0 +1,191 @@
+{
+  "subreddits": [
+    "funny",
+    "ProgrammerHumor",
+    "test"
+  ],
+  "canned_responses": [
+    {
+      "search_keys": [
+        "\"i'm not\"",
+        "\"i am not\"",
+        "\"i don't\"",
+        "\"i do not\""
+      ],
+      "comment_regexes": [
+        "^(i'm|i am) not (actually |really |quite |that )*sure (how|why) (that|it) (happens|works|occurs|goes)",
+        "^i (don't|do not) (actually |really |quite )*know (how|why) (that|it) (happens|works|occurs|goes)"
+      ],
+      "response": "> Holy hell son, you're about as useful as a c***-flavoured lollipop!",
+      "ignore_regexes": [
+        "feel",
+        "deal",
+        "react",
+        "cope",
+        "live",
+        "long",
+        "handle",
+        "act",
+        "missed",
+        "many times",
+        "thanks",
+        "you d",
+        "lollipop"
+      ],
+      "max_chars": 75
+    },
+    {
+      "search_keys": [
+        "necessary"
+      ],
+      "comment_regexes": [
+        "(is it|is that|might be|isn't it|kind of|sort of|possibly) necessary"
+      ],
+      "response": "> Necessary? Is it necessary for me to drink my own urine? No! But I do it anyway, cause it's sterile and I like the taste.",
+      "ignore_regexes": [
+        "to drink my own urine",
+        "sterile and I like the taste",
+        "given",
+        "since"
+      ],
+      "max_chars": 75
+    },
+    {
+      "search_keys": [
+        "manscape",
+        "manscaping"
+      ],
+      "comment_regexes": [
+        "manscape",
+        "manscaping"
+      ],
+      "response": "> Take care of your balls, and they'll take care of you.",
+      "ignore_regexes": [
+        "take care of your balls"
+      ]
+    },
+    {
+      "search_keys": [
+        "\"a wrench\""
+      ],
+      "comment_regexes": [
+        "(throw|chuck|biff|hiff|toss) a wrench"
+      ],
+      "response": "> If you can dodge a wrench, you can dodge a ball!",
+      "ignore_regexes": [
+        "you can dodge a wrench"
+      ]
+    },
+    {
+      "search_keys": [
+        "\"5 d's\"",
+        "\"5 ds\"",
+        "\"five d's\"",
+        "\"five ds\"",
+        "ball"
+      ],
+      "comment_regexes": [
+        "5 d's",
+        "5 ds ",
+        "five d's",
+        "five ds ",
+        "hit by a ball",
+        "hit by ball",
+        "hit with a ball",
+        "hit with ball"
+      ],
+      "response": "> Just remember the five D's of dodgeball: Dodge, Duck, Dip, Dive and... Dodge. If you master the five D's, no amount of balls on earth can hit you."
+    }
+  ],
+  "postfix": "\n\nI ain't crazy, and I ain't a guy! I'm Patches O'Houlihan Bot",
+  "tests": [
+    {
+      "comment": "",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure why that happens.. :/",
+      "reply": "> Holy hell son, you're about as useful as a c***-flavoured lollipop!"
+    },
+    {
+      "comment": "I'm not really sure how it goes",
+      "reply": "> Holy hell son, you're about as useful as a c***-flavoured lollipop!"
+    },
+    {
+      "comment": "I don't really know how it goes",
+      "reply": "> Holy hell son, you're about as useful as a c***-flavoured lollipop!"
+    },
+    {
+      "comment": "I'm not really quite that sure how it goes'",
+      "reply": "> Holy hell son, you're about as useful as a c***-flavoured lollipop!"
+    },
+    {
+      "comment": "I like to manscape",
+      "reply": "> Take care of your balls, and they'll take care of you."
+    },
+    {
+      "comment": "I'm not sure that's the problem",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure what you mean",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure if I love it or hate it ",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure the cat knows what's going on.",
+      "reply": null
+    },
+    {
+      "comment": "I don't know how to process this",
+      "reply": null
+    },
+    {
+      "comment": "I don't know how I'd survive without it",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure if I like this phrase",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure if you're brave, stupid or both",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure I remember it though",
+      "reply": null
+    },
+    {
+      "comment": "I don't know how that will be any help tbh",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure. It was given to me as a gift.",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure if he's a genius or a dumbass.",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure, they do mean well.",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure if this is legal",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure how to carry on after all my family died, it's been very traumatic etc etc...",
+      "reply": null
+    },
+    {
+      "comment": "I'm not sure how to to cope",
+      "reply": null
+    }
+  ]
+}
