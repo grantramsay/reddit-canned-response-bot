@@ -1,7 +1,8 @@
 # Reddit Canned Response Bot
-Simple Python 3 based bot to send canned responses to specific phrases.
+Simple Python 3 based bot to send canned responses to specific phrases and/or username mentions/summons.
 
 Uses [praw](https://praw.readthedocs.io/en/latest/) and [pushshift](https://github.com/pushshift/api) ([psaw](https://github.com/dmarx/psaw)) to continually get new comments containing specific keywords, then regular expressions for further filtering. Sends a canned response if filter matches.
+Username mentions just use praw to check unread inbox messages.
 
 ### Before you do anything
 * Read the [Reddit bottiquette rules](https://www.reddit.com/r/Bottiquette/wiki/bottiquette)
@@ -11,8 +12,7 @@ Uses [praw](https://praw.readthedocs.io/en/latest/) and [pushshift](https://gith
 * Install python requirements `pip3 install -r requirements.txt`
 * Create a [praw.ini](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html) file and fill out bot details (see example_praw.ini)
 * Create a mybotname_config.json bot configuration file (see example_bot_config.json)
-  * Remembering to put your main account name in the postfix!
-  
+
 ### Usage
 * View options
   * `./bot.py -h`
@@ -24,6 +24,6 @@ Uses [praw](https://praw.readthedocs.io/en/latest/) and [pushshift](https://gith
   * `./bot.py mybotname_config.json mymainaccountname --dry-run=168`
 
 ## Notes
-* Currently all regexes are currently case insensitive (`re.I`)
-* Don't actually use example_bot_config.log it's just a silly example
+* Currently all regexes are case insensitive (`re.I`)
+* Don't actually use example_bot_config.json it's just a silly example
 * Don't reuse/duplicate patchesohoulihanbot

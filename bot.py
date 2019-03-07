@@ -11,12 +11,13 @@ import os
 import parse
 import pathlib
 import praw
+import praw.models
 import psaw
 import re
 import sys
 import time
 import typing
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 import unittest
 
 MAX_COMMENTS_PER_SUBMISSION = 2
@@ -36,7 +37,7 @@ class CannedResponse:
         self.ignore_regexes = ignore_regexes
         self.max_chars = max_chars
 
-    def get_response(self, comment: str):
+    def get_response(self, comment: str) -> Optional[str]:
         # All regexes are currently case insensitive (re.I).
         if any(re.search(comment_regex, comment, re.I) for comment_regex in self.comment_regexes):
             if any(re.findall(ignore_regex, comment, re.I) for ignore_regex in self.ignore_regexes):
@@ -52,16 +53,24 @@ class CannedResponse:
 
 
 class ReplyGenerator:
-    def __init__(self, canned_responses: List[CannedResponse], main_account_username: str, postfix: str = ''):
+    def __init__(self, canned_responses: List[CannedResponse], main_account_username: str,
+                 comment_mention_reply: Optional[str]=None, postfix: str = ''):
         self.canned_responses = canned_responses
         self.postfix = postfix + ' (u/{})'.format(main_account_username)
+        self.comment_mention_reply = comment_mention_reply
         self.search_keys = set(itertools.chain.from_iterable(r.search_keys for r in canned_responses))
 
-    def get_response(self, comment: str):
+    def get_response(self, comment: str) -> Optional[str]:
         for canned_response in self.canned_responses:
             response = canned_response.get_response(comment)
             if response is not None:
                 return response + self.postfix
+        return None
+
+    # noinspection PyUnusedLocal
+    def get_comment_mention_response(self, comment: str) -> Optional[str]:
+        if self.comment_mention_reply:
+            return self.comment_mention_reply + self.postfix
         return None
 
 
@@ -74,12 +83,13 @@ class Bot:
     def __init__(self, pushshift: psaw.PushshiftAPI, reply_generator: ReplyGenerator,
                  subreddit_names: List[str], dry_run: bool = False, start_time_subtract_hours: int = 0):
         self.pushshift = pushshift
+        self.praw = pushshift.r  # type: praw.Reddit
         self.reply_generator = reply_generator
         first_query_time_utc = int(datetime.utcnow().replace(tzinfo=timezone.utc).timestamp() -
                                    start_time_subtract_hours * 3600)
         self.subreddits = list(Bot.SubredditInfo(name, first_query_time_utc) for name in subreddit_names)
         self.dry_run = dry_run
-        self.bot_username = pushshift.r.config.username
+        self.bot_username = self.praw.config.username
         self.search_query = '|'.join(reply_generator.search_keys)
         self._load_commented_items()
 
@@ -90,8 +100,10 @@ class Bot:
         if os.path.isfile(self.commented_items_filename):
             with open(self.commented_items_filename) as f:
                 commented_items = json.load(f)  # type: Dict[str, typing.Any]
-        self.replied_to_comments = collections.deque(commented_items.get('replied_to_comments', []), maxlen=1000)
-        self.commented_submissions = collections.deque(commented_items.get('commented_submissions', []), maxlen=1000)
+        self.replied_to_comments = collections.deque(
+            commented_items.get('replied_to_comments', []), maxlen=1000)
+        self.commented_submissions = collections.deque(
+            commented_items.get('commented_submissions', []), maxlen=1000)
 
     def _append_commented_items(self, comment):
         self.replied_to_comments.append(str(comment.id))
@@ -101,7 +113,27 @@ class Bot:
                                'commented_submissions': list(self.commented_submissions)}, indent=2)
             f.write(dump)
 
-    def run_once(self):
+    def _check_and_handle_inbox(self) -> bool:
+        max_messages_per_request = 25  # <= 100
+        all_unread_messages = list(self.praw.inbox.unread(limit=max_messages_per_request))
+
+        for comment in [msg for msg in all_unread_messages
+                        if isinstance(msg, praw.models.Comment)]:
+            self._handle_comment_mention(comment)
+
+        for message in [msg for msg in all_unread_messages
+                        if isinstance(msg, praw.models.Message)]:
+            self._handle_direct_message(message)
+
+        self.praw.inbox.mark_read(all_unread_messages)
+
+        handled_all_messages = len(all_unread_messages) < max_messages_per_request
+        return handled_all_messages
+
+    def _scrape_and_handle_comments(self) -> bool:
+        max_comments_per_request = 500  # <= 500
+        handled_all_comments = True
+
         for subreddit in self.subreddits:
             comments = list(
                 self.pushshift.search_comments(
@@ -110,50 +142,86 @@ class Bot:
                     after=subreddit.next_query_time_utc,
                     sort="asc",
                     sort_type="created_utc",
-                    limit=500))
+                    limit=max_comments_per_request))
 
             if comments:
                 log.debug("Received {} comments after utc {} for r/{}".format(
                     len(comments), subreddit.next_query_time_utc, subreddit.name))
 
+                if len(comments) == max_comments_per_request:
+                    handled_all_comments = False
+
                 # Update next request time to time of the latest comment received
                 subreddit.next_query_time_utc = int(comments[-1].created_utc)
 
                 for comment in comments:
-                    self.handle_comment(comment)
+                    self._handle_scraped_comment(comment)
 
-    def handle_comment(self, comment):
-        if not comment.author or comment.author == self.bot_username:
-            return
+        return handled_all_comments
 
+    def _handle_scraped_comment(self, comment: praw.models.Comment):
         response = self.reply_generator.get_response(comment.body)
-        if response is not None:
-            log_txt = 'https://www.reddit.com{} {}'.format(comment.permalink, comment.body)
-            if str(comment.id) in self.replied_to_comments:
-                log.info('Already replied to comment, ignoring: {}'.format(log_txt))
-                return
-            if self.commented_submissions.count(str(comment.submission.id)) >= MAX_COMMENTS_PER_SUBMISSION:
-                log.info('Max submission replies ({}) hit, ignoring: {}'.format(MAX_COMMENTS_PER_SUBMISSION, log_txt))
-                return
+        if response and self._can_reply_to_comment(comment):
+            log.info('Replying to comment: {}\n\n{}'.format(
+                self._comment_log_txt(comment), response))
+            self._send_reply(comment, response)
 
-            # Keep track of what we've recently commented on to avoid duplicate/spamming responses.
-            self._append_commented_items(comment)
+    def _handle_comment_mention(self, comment: praw.models.Comment):
+        response = self.reply_generator.get_comment_mention_response(comment.body)
+        if response and self._can_reply_to_comment(comment):
+            log.info('Replying to comment mention: {}\n\n{}'.format(
+                self._comment_log_txt(comment), response))
+            self._send_reply(comment, response)
 
-            log.info('Replying to comment: {}\n\n{}'.format(log_txt, response))
-            if not self.dry_run:
-                # Post actual reddit comment
-                comment.reply(response)
+    def _handle_direct_message(self, message: praw.models.Message):
+        # Direct messages are not currently handled.
+        pass
 
-    def run_forever(self):
+    def _can_reply_to_comment(self, comment: praw.models.Comment) -> bool:
+        if not comment.author or comment.author == self.bot_username:
+            # Don't reply to yourself...
+            return False
+
+        if str(comment.id) in self.replied_to_comments:
+            log.info('Already replied to comment, ignoring: {}'.format(self._comment_log_txt(comment)))
+            return False
+        if self.commented_submissions.count(str(comment.submission.id)) >= MAX_COMMENTS_PER_SUBMISSION:
+            log.info('Max submission replies ({}) hit, ignoring: {}'.format(
+                MAX_COMMENTS_PER_SUBMISSION, self._comment_log_txt(comment)))
+            return False
+        return True
+
+    def _send_reply(self, comment: Union[praw.models.Comment, praw.models.Message], response: str):
+        # Keep track of what we've recently commented on to avoid duplicate/spamming responses.
+        self._append_commented_items(comment)
+
+        if not self.dry_run:
+            # Post actual reddit comment
+            comment.reply(response)
+
+    @staticmethod
+    def _comment_log_txt(comment: praw.models.Comment) -> str:
+        if hasattr(comment, 'permalink'):
+            return 'https://www.reddit.com{} {}'.format(comment.permalink, comment.body)
+        return '{}-{}-{} {}'.format(comment.subreddit.display_name, comment.submission.id, comment.id, comment.body)
+
+    def run(self):
         while True:
             try:
-                self.run_once()
+                handled_all_messages = self._check_and_handle_inbox()
+                handled_all_comments = True
+                if self.search_query:
+                    handled_all_comments = self._scrape_and_handle_comments()
             except Exception as e:
                 log.warning('Crash!!\n{}'.format(e))
                 ratelimit = parse.search('try again in {:d} minutes', str(e))
                 if ratelimit:
                     log.info("Sleeping for ratelimit of {} minutes".format(ratelimit[0]))
                     time.sleep(ratelimit[0] * 60)
+            else:
+                # Slow down requests if we've caught up and processed all pending items/events
+                if handled_all_messages and handled_all_comments:
+                    time.sleep(30)
 
 
 class BotTests(unittest.TestCase):
@@ -209,7 +277,8 @@ def main():
 
     canned_responses = [CannedResponse(**kwargs) for kwargs in bot_config['canned_responses']]
     reply_generator = ReplyGenerator(
-        canned_responses, arguments.main_account_username, bot_config['postfix'])
+        canned_responses, arguments.main_account_username,
+        bot_config.get('comment_mention_reply', None), bot_config['postfix'])
 
     tests = bot_config.get('tests', None)
     if tests and not arguments.skip_tests:
@@ -224,7 +293,7 @@ def main():
     start_time_subtract_hours = 0 if arguments.dry_run is None else arguments.dry_run
     bot = Bot(pushshift, reply_generator, bot_config['subreddits'], dry_run=dry_run,
               start_time_subtract_hours=start_time_subtract_hours)
-    bot.run_forever()
+    bot.run()
 
 
 if __name__ == '__main__':

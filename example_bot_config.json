@@ -28,6 +28,7 @@
       "max_chars": 50
     }
   ],
+  "comment_mention_reply": "You called?",
   "postfix": "\n\nI am a bot",
   "tests": [
     {
