@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 import argparse
+from atomicwrites import atomic_write
 import collections
 from datetime import datetime, timezone
 import itertools
 import json
 import logging
 import logging.handlers
+import os
 import parse
 import pathlib
 import praw
@@ -79,11 +81,25 @@ class Bot:
         self.dry_run = dry_run
         self.bot_username = pushshift.r.config.username
         self.search_query = '|'.join(reply_generator.search_keys)
+        self._load_commented_items()
 
-        # Keep track of what we've recently commented on to avoid duplicate/spamming responses.
-        # TODO: Log to file and init on startup.
-        self.replied_to_comments = collections.deque([], maxlen=1000)
-        self.commented_submissions = collections.deque([], maxlen=1000)
+    def _load_commented_items(self):
+        # Keeps track of what we've recently commented on to avoid duplicate/spamming responses.
+        self.commented_items_filename = self.bot_username + '_commented_items.json'
+        commented_items = {}
+        if os.path.isfile(self.commented_items_filename):
+            with open(self.commented_items_filename) as f:
+                commented_items = json.load(f)  # type: Dict[str, typing.Any]
+        self.replied_to_comments = collections.deque(commented_items.get('replied_to_comments', []), maxlen=1000)
+        self.commented_submissions = collections.deque(commented_items.get('commented_submissions', []), maxlen=1000)
+
+    def _append_commented_items(self, comment):
+        self.replied_to_comments.append(str(comment.id))
+        self.commented_submissions.append(str(comment.submission.id))
+        with atomic_write(self.commented_items_filename, overwrite=True) as f:
+            dump = json.dumps({'replied_to_comments': list(self.replied_to_comments),
+                               'commented_submissions': list(self.commented_submissions)}, indent=2)
+            f.write(dump)
 
     def run_once(self):
         for subreddit in self.subreddits:
@@ -107,18 +123,26 @@ class Bot:
                     self.handle_comment(comment)
 
     def handle_comment(self, comment):
-        if (comment.author and comment.author != self.bot_username
-           and str(comment.id) not in self.replied_to_comments
-           and self.commented_submissions.count(str(comment.submission.id)) < MAX_COMMENTS_PER_SUBMISSION):
-            response = self.reply_generator.get_response(comment.body)
-            if response is not None:
-                log.info('https://www.reddit.com{} {}'.format(comment.permalink, comment.body))
-                log.info('Replying: {}'.format(response))
-                self.replied_to_comments.append(str(comment.id))
-                self.commented_submissions.append(str(comment.submission.id))
-                if not self.dry_run:
-                    # Post actual reddit comment
-                    comment.reply(response)
+        if not comment.author or comment.author == self.bot_username:
+            return
+
+        response = self.reply_generator.get_response(comment.body)
+        if response is not None:
+            log_txt = 'https://www.reddit.com{} {}'.format(comment.permalink, comment.body)
+            if str(comment.id) in self.replied_to_comments:
+                log.info('Already replied to comment, ignoring: {}'.format(log_txt))
+                return
+            if self.commented_submissions.count(str(comment.submission.id)) >= MAX_COMMENTS_PER_SUBMISSION:
+                log.info('Max submission replies ({}) hit, ignoring: {}'.format(MAX_COMMENTS_PER_SUBMISSION, log_txt))
+                return
+
+            # Keep track of what we've recently commented on to avoid duplicate/spamming responses.
+            self._append_commented_items(comment)
+
+            log.info('Replying to comment: {}\n\n{}'.format(log_txt, response))
+            if not self.dry_run:
+                # Post actual reddit comment
+                comment.reply(response)
 
     def run_forever(self):
         while True:
