@@ -29,7 +29,7 @@
     }
   ],
   "comment_mention_reply": "You called?",
-  "postfix": "\n\nI am a bot",
+  "postfix": "\n\nI am a bot (u/mainaccountname)",
   "tests": [
     {
       "comment": "This is lame",

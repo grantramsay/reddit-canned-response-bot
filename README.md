@@ -10,18 +10,16 @@ Username mentions just use praw to check unread inbox messages.
 ### Setup
 * Create a Reddit account for bot and [create an authorised app](https://www.reddit.com/prefs/apps/) if you haven't already
 * Install python requirements `pip3 install -r requirements.txt`
-* Create a [praw.ini](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html) file and fill out bot details (see example_praw.ini)
-* Create a mybotname_config.json bot configuration file (see example_bot_config.json)
+* Create a [praw.ini](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html) file (or set [praw env vars](https://praw.readthedocs.io/en/latest/getting_started/configuration/environment_variables.html)) and fill out bot details (see [example_praw.ini](example_praw.ini))
+* Create a mybotname_config.json bot configuration file (see [example_bot_config.json](example_bot_config.json))
 
 ### Usage
-* View options
-  * `./bot.py -h`
 * Run bot
-  * `./bot.py mybotname_config.json mymainaccountname`
+  * `./bot.py mybotname_config.json`
 * Dry run (print replies without actually sending)
-  * `./bot.py mybotname_config.json mymainaccountname --dry-run`
+  * `./bot.py mybotname_config.json --dry-run`
 * Dry run starting from comments made one week (24*7=168 hours) ago
-  * `./bot.py mybotname_config.json mymainaccountname --dry-run=168`
+  * `./bot.py mybotname_config.json --dry-run=168`
 
 ## Heroku
 [Heroku](https://www.heroku.com) is a free way to run your bot entirely in the cloud.
@@ -39,7 +37,7 @@ Username mentions just use praw to check unread inbox messages.
     heroku config:set praw_username=foobot
     heroku config:set praw_password=bar
     # Add a Procfile that tells Heroku how to (re)start your app
-    echo "worker: ./bot.py mybotname_config.json mymainaccountname" > Procfile
+    echo "worker: ./bot.py mybotname_config.json" > Procfile
     git add Procfile --force
     git commit -m "Add Heroku Procfile"
     git push heroku master

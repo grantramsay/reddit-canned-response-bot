@@ -53,10 +53,10 @@ class CannedResponse:
 
 
 class ReplyGenerator:
-    def __init__(self, canned_responses: List[CannedResponse], main_account_username: str,
+    def __init__(self, canned_responses: List[CannedResponse],
                  comment_mention_reply: Optional[str]=None, postfix: str = ''):
         self.canned_responses = canned_responses
-        self.postfix = postfix + ' (u/{})'.format(main_account_username)
+        self.postfix = postfix
         self.comment_mention_reply = comment_mention_reply
         self.search_keys = set(itertools.chain.from_iterable(r.search_keys for r in canned_responses))
 
@@ -243,9 +243,6 @@ def main():
         description='Reddit canned response bot')
     arg_parser.add_argument(dest='bot_config_file', type=str,
                             help='json bot config file (see example_bot_config.json)')
-    arg_parser.add_argument(dest='main_account_username', type=str,
-                            help='Your main account username that will be appended to the bots name.'
-                            ' I.e. "jeff" for u/jeff')
     arg_parser.add_argument('--dry-run', dest='dry_run', type=int, const=0, default=None, nargs='?',
                             help='Doesn\'t actually reply, just prints what it would\'ve sent.'
                                  ' A number of hours prior to "now" may also be supplied to '
@@ -277,8 +274,7 @@ def main():
 
     canned_responses = [CannedResponse(**kwargs) for kwargs in bot_config['canned_responses']]
     reply_generator = ReplyGenerator(
-        canned_responses, arguments.main_account_username,
-        bot_config.get('comment_mention_reply', None), bot_config['postfix'])
+        canned_responses, bot_config.get('comment_mention_reply', None), bot_config['postfix'])
 
     tests = bot_config.get('tests', None)
     if tests and not arguments.skip_tests:
