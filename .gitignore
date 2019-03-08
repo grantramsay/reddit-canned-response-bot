@@ -14,5 +14,9 @@
 # F-ing Apple
 .DS_Store
 
+# Heroku
+.env
+Procfile
+
 # Meh push Patches O'Houlihan for extra example
 !patchesohoulihanbot_config.json
