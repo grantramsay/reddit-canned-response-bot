@@ -138,7 +138,8 @@ class Bot:
             comments = list(
                 self.pushshift.search_comments(
                     q=self.search_query,
-                    subreddit=subreddit.name,
+                    # Special handling for r/all as it's not a "real" subreddit
+                    subreddit=subreddit.name if subreddit.name != 'all' else None,
                     after=subreddit.next_query_time_utc,
                     sort="asc",
                     sort_type="created_utc",
