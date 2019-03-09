@@ -13,24 +13,24 @@
         "\"i do not\""
       ],
       "comment_regexes": [
-        "^(i'm|i am) not (actually |really |quite |that )*sure (how|why) (that|it) (happens|works|occurs|goes)",
-        "^i (don't|do not) (actually |really |quite )*know (how|why) (that|it) (happens|works|occurs|goes)"
+        "(?i)^(i'm|i am) not (actually |really |quite |that )*sure (how|why) (that|it) (happens|works|occurs|goes)",
+        "(?i)^i (don't|do not) (actually |really |quite )*know (how|why) (that|it) (happens|works|occurs|goes)"
       ],
       "response": "> Holy hell son, you're about as useful as a c***-flavoured lollipop!",
       "ignore_regexes": [
-        "feel",
-        "deal",
-        "react",
-        "cope",
-        "live",
-        "long",
-        "handle",
-        "act",
-        "missed",
-        "many times",
-        "thanks",
-        "you d",
-        "lollipop"
+        "(?i)feel",
+        "(?i)deal",
+        "(?i)react",
+        "(?i)cope",
+        "(?i)live",
+        "(?i)long",
+        "(?i)handle",
+        "(?i)act",
+        "(?i)missed",
+        "(?i)many times",
+        "(?i)thanks",
+        "(?i)you d",
+        "(?i)lollipop"
       ],
       "max_chars": 75
     },
@@ -39,14 +39,18 @@
         "necessary"
       ],
       "comment_regexes": [
-        "(is it|is that|might be|isn't it|kind of|sort of|possibly) necessary"
+        "(?i)(is it|is this|is that|might be|isn't it|kind of|sort of|possibly) necessary"
       ],
       "response": "> Necessary? Is it necessary for me to drink my own urine? No! But I do it anyway, cause it's sterile and I like the taste.",
       "ignore_regexes": [
-        "to drink my own urine",
-        "sterile and I like the taste",
-        "given",
-        "since"
+        "(?i)urine",
+        "(?i)sterile",
+        "(?i)given",
+        "(?i)since",
+        "(?i)because",
+        "(?i)why",
+        "(?i)when",
+        "(?i)how"
       ],
       "max_chars": 75
     },
@@ -56,12 +60,12 @@
         "manscaping"
       ],
       "comment_regexes": [
-        "manscape",
-        "manscaping"
+        "(?i)manscape",
+        "(?i)manscaping"
       ],
       "response": "> Take care of your balls, and they'll take care of you.",
       "ignore_regexes": [
-        "take care of your balls"
+        "(?i)take care of your balls"
       ]
     },
     {
@@ -69,11 +73,11 @@
         "\"a wrench\""
       ],
       "comment_regexes": [
-        "(throw|chuck|biff|hiff|toss) a wrench"
+        "(?i)(throw|chuck|biff|hiff|toss) a wrench"
       ],
       "response": "> If you can dodge a wrench, you can dodge a ball!",
       "ignore_regexes": [
-        "you can dodge a wrench"
+        "(?i)you can dodge a wrench"
       ]
     },
     {
@@ -85,14 +89,8 @@
         "ball"
       ],
       "comment_regexes": [
-        "5 d's",
-        "5 ds ",
-        "five d's",
-        "five ds ",
-        "hit by a ball",
-        "hit by ball",
-        "hit with a ball",
-        "hit with ball"
+        "(?i)(5|five) (d's|ds)",
+        "(?i)hit (by|with) (a )?ball"
       ],
       "response": "> Just remember the five D's of dodgeball: Dodge, Duck, Dip, Dive and... Dodge. If you master the five D's, no amount of balls on earth can hit you."
     }

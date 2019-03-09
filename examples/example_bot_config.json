@@ -9,7 +9,7 @@
         "\"lame\""
       ],
       "comment_regexes": [
-        "^this is (really |soo |totally )*lame\\.*$"
+        "(?i)^this is (really |soo |totally )*lame\\.*$"
       ],
       "response": "Your face is lame"
     },
@@ -18,12 +18,12 @@
         "\"looser\""
       ],
       "comment_regexes": [
-        "(you are|you're) (a|an) (absolute |total |full on |fucking )*looser"
+        "(?i)(you are|you're) (a|an) (absolute |total |full on |fucking )*looser"
       ],
       "response": "Pfft you're a looser",
       "ignore_regexes": [
-        "but",
-        "like"
+        "(?i)but",
+        "(?i)like"
       ],
       "max_chars": 50
     }

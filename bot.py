@@ -38,9 +38,8 @@ class CannedResponse:
         self.max_chars = max_chars
 
     def get_response(self, comment: str) -> Optional[str]:
-        # All regexes are currently case insensitive (re.I).
-        if any(re.search(comment_regex, comment, re.I) for comment_regex in self.comment_regexes):
-            if any(re.findall(ignore_regex, comment, re.I) for ignore_regex in self.ignore_regexes):
+        if any(re.search(comment_regex, comment) for comment_regex in self.comment_regexes):
+            if any(re.findall(ignore_regex, comment) for ignore_regex in self.ignore_regexes):
                 log.debug('Skipping due to ignored regex\n{}'.format(comment))
                 return None
             if len(comment) > self.max_chars:
