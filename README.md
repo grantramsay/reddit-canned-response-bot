@@ -10,8 +10,36 @@ Username mentions just use praw to check unread inbox messages.
 ### Setup
 * Create a Reddit account for bot and [create an authorised app](https://www.reddit.com/prefs/apps/) if you haven't already
 * Install python requirements `pip3 install -r requirements.txt`
-* Create a [praw.ini](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html) file (or set [praw env vars](https://praw.readthedocs.io/en/latest/getting_started/configuration/environment_variables.html)) and fill out bot details (see [example_praw.ini](examples/example_praw.ini))
-* Create a mybotname_config.json bot configuration file (see [minimal_example_bot_config.json](examples/minimal_example_bot_config.json))
+* Create a [praw.ini](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html) file (or set [praw env vars](https://praw.readthedocs.io/en/latest/getting_started/configuration/environment_variables.html)) and fill out bot credentials:
+    ```ini
+    [DEFAULT]
+    client_id=abcdefhijklmno
+    client_secret=abcdefhijklmnopqrstuzwxyz01
+    user_agent=foo
+    username=foobot
+    password=bar
+    ```
+* Create a mybotname_config.json bot configuration file. Can be as simple as this:
+    ```json
+    {
+      "subreddits": [
+        "all"
+      ],
+      "canned_responses": [
+        {
+          "search_keys": [
+            "\"!mybotname\""
+          ],
+          "comment_regexes": [
+            "surprised pikachu"
+          ],
+          "response": "https://i.imgur.com/XLSOusb.png"
+        }
+      ],
+      "postfix": "\n\nI am a bot (u/mymainaccountname)",
+      "max_comments_per_submission": 100
+    }
+    ```
 
 ### Usage
 * Run bot
@@ -27,10 +55,10 @@ Username mentions just use praw to check unread inbox messages.
 * [Install Heroko CLI](https://devcenter.heroku.com/articles/heroku-cli#download-and-install)
 *  Clone this repo and `cd` into project folder
 * Create and run detached bot
-    ```
+    ```bash
     heroku login
     heroku create
-    # Praw config (i.e. from praw.ini file)
+    # Praw credentials (i.e. from praw.ini file)
     heroku config:set praw_client_id=abcdefhijklmno
     heroku config:set praw_client_secret=abcdefhijklmnopqrstuzwxyz01
     heroku config:set praw_user_agent=foo
@@ -41,9 +69,11 @@ Username mentions just use praw to check unread inbox messages.
     git add Procfile --force
     git commit -m "Add Heroku Procfile"
     git push heroku master
+    # Start bot
     heroku ps:scale worker=1
     ```
 * View logs: `heroku logs --tail`
+* Stop bot: `heroku ps:scale worker=0`
 
 #### Heroku Caveats
 * Heroku dynos are [periodically restarted/cycled (~24 hourly)](https://devcenter.heroku.com/articles/dynos#automatic-dyno-restarts)
