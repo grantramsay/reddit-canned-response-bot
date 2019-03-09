@@ -243,7 +243,7 @@ def main():
     arg_parser = argparse.ArgumentParser(
         description='Reddit canned response bot')
     arg_parser.add_argument(dest='bot_config_file', type=str,
-                            help='json bot config file (see example_bot_config.json)')
+                            help='json bot config file (see examples/minimal_example_bot_config.json)')
     arg_parser.add_argument('--dry-run', dest='dry_run', type=int, const=0, default=None, nargs='?',
                             help='Doesn\'t actually reply, just prints what it would\'ve sent.'
                                  ' A number of hours prior to "now" may also be supplied to '

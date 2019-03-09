@@ -10,8 +10,8 @@ Username mentions just use praw to check unread inbox messages.
 ### Setup
 * Create a Reddit account for bot and [create an authorised app](https://www.reddit.com/prefs/apps/) if you haven't already
 * Install python requirements `pip3 install -r requirements.txt`
-* Create a [praw.ini](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html) file (or set [praw env vars](https://praw.readthedocs.io/en/latest/getting_started/configuration/environment_variables.html)) and fill out bot details (see [example_praw.ini](example_praw.ini))
-* Create a mybotname_config.json bot configuration file (see [example_bot_config.json](example_bot_config.json))
+* Create a [praw.ini](https://praw.readthedocs.io/en/latest/getting_started/configuration/prawini.html) file (or set [praw env vars](https://praw.readthedocs.io/en/latest/getting_started/configuration/environment_variables.html)) and fill out bot details (see [example_praw.ini](examples/example_praw.ini))
+* Create a mybotname_config.json bot configuration file (see [minimal_example_bot_config.json](examples/minimal_example_bot_config.json))
 
 ### Usage
 * Run bot
@@ -52,5 +52,4 @@ Username mentions just use praw to check unread inbox messages.
 
 ## Notes
 * Currently all regexes are case insensitive (`re.I`)
-* Don't actually use example_bot_config.json it's just a silly example
-* Don't reuse/duplicate patchesohoulihanbot
+* Don't use/run any of the example bot configurations
