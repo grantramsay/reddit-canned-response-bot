@@ -30,6 +30,7 @@
   ],
   "comment_mention_reply": "You called?",
   "postfix": "\n\nI am a bot (u/mainaccountname)",
+  "max_comments_per_submission": 2,
   "tests": [
     {
       "comment": "This is lame",

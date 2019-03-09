@@ -48,7 +48,7 @@ Username mentions just use praw to check unread inbox messages.
 #### Heroku Caveats
 * Heroku dynos are [periodically restarted/cycled (~24 hourly)](https://devcenter.heroku.com/articles/dynos#automatic-dyno-restarts)
   * This will cause a few seconds of downtime each time it occurs
-  * Due to Heroku's [ephemeral filesystem](https://devcenter.heroku.com/articles/dynos#ephemeral-filesystem) the list of already commented on submissions will be wiped, this makes `MAX_COMMENTS_PER_SUBMISSION` more of a daily limit
+  * Due to Heroku's [ephemeral filesystem](https://devcenter.heroku.com/articles/dynos#ephemeral-filesystem) the list of already commented on submissions will be wiped, this makes `max_comments_per_submission` more of a daily limit
 
 ## Notes
 * Currently all regexes are case insensitive (`re.I`)

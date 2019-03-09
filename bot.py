@@ -20,7 +20,7 @@ import typing
 from typing import Dict, List, Optional, Union
 import unittest
 
-MAX_COMMENTS_PER_SUBMISSION = 2
+DEFAULT_MAX_COMMENTS_PER_SUBMISSION = 2
 
 log = logging.getLogger('bot_log')
 log.setLevel(logging.DEBUG)
@@ -80,14 +80,16 @@ class Bot:
             self.name = name
             self.next_query_time_utc = first_query_time_utc
 
-    def __init__(self, pushshift: psaw.PushshiftAPI, reply_generator: ReplyGenerator,
-                 subreddit_names: List[str], dry_run: bool = False, start_time_subtract_hours: int = 0):
+    def __init__(self, pushshift: psaw.PushshiftAPI, reply_generator: ReplyGenerator, subreddit_names: List[str],
+                 max_comments_per_submission: int = DEFAULT_MAX_COMMENTS_PER_SUBMISSION,
+                 dry_run: bool = False, start_time_subtract_hours: int = 0):
         self.pushshift = pushshift
         self.praw = pushshift.r  # type: praw.Reddit
         self.reply_generator = reply_generator
         first_query_time_utc = int(datetime.utcnow().replace(tzinfo=timezone.utc).timestamp() -
                                    start_time_subtract_hours * 3600)
         self.subreddits = list(Bot.SubredditInfo(name, first_query_time_utc) for name in subreddit_names)
+        self.max_comments_per_submission = max_comments_per_submission
         self.dry_run = dry_run
         self.bot_username = self.praw.config.username
         self.search_query = '|'.join(reply_generator.search_keys)
@@ -115,19 +117,17 @@ class Bot:
 
     def _check_and_handle_inbox(self) -> bool:
         max_messages_per_request = 25  # <= 100
-        all_unread_messages = list(self.praw.inbox.unread(limit=max_messages_per_request))
+        unread_messages = list(self.praw.inbox.unread(limit=max_messages_per_request))
 
-        for comment in [msg for msg in all_unread_messages
-                        if isinstance(msg, praw.models.Comment)]:
-            self._handle_comment_mention(comment)
+        for message in unread_messages:
+            if isinstance(message, praw.models.Comment):
+                self._handle_comment_mention(message)
+            elif isinstance(message, praw.models.Message):
+                self._handle_direct_message(message)
 
-        for message in [msg for msg in all_unread_messages
-                        if isinstance(msg, praw.models.Message)]:
-            self._handle_direct_message(message)
+        self.praw.inbox.mark_read(unread_messages)
 
-        self.praw.inbox.mark_read(all_unread_messages)
-
-        handled_all_messages = len(all_unread_messages) < max_messages_per_request
+        handled_all_messages = len(unread_messages) < max_messages_per_request
         return handled_all_messages
 
     def _scrape_and_handle_comments(self) -> bool:
@@ -186,9 +186,9 @@ class Bot:
         if str(comment.id) in self.replied_to_comments:
             log.info('Already replied to comment, ignoring: {}'.format(self._comment_log_txt(comment)))
             return False
-        if self.commented_submissions.count(str(comment.submission.id)) >= MAX_COMMENTS_PER_SUBMISSION:
+        if self.commented_submissions.count(str(comment.submission.id)) >= self.max_comments_per_submission:
             log.info('Max submission replies ({}) hit, ignoring: {}'.format(
-                MAX_COMMENTS_PER_SUBMISSION, self._comment_log_txt(comment)))
+                self.max_comments_per_submission, self._comment_log_txt(comment)))
             return False
         return True
 
@@ -286,10 +286,11 @@ def main():
         unittest.TextTestRunner().run(suite)
         log.setLevel(logging.DEBUG)  # Restore log output
 
+    max_comments_per_submission = bot_config.get('max_comments_per_submission', DEFAULT_MAX_COMMENTS_PER_SUBMISSION)
     dry_run = arguments.dry_run is not None
     start_time_subtract_hours = 0 if arguments.dry_run is None else arguments.dry_run
-    bot = Bot(pushshift, reply_generator, bot_config['subreddits'], dry_run=dry_run,
-              start_time_subtract_hours=start_time_subtract_hours)
+    bot = Bot(pushshift, reply_generator, bot_config['subreddits'], max_comments_per_submission,
+              dry_run=dry_run, start_time_subtract_hours=start_time_subtract_hours)
     bot.run()
 
 
