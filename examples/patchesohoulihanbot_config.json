@@ -4,6 +4,9 @@
     "ProgrammerHumor",
     "test"
   ],
+  "comment_mention_reply": "> Just remember the five D's of dodgeball: Dodge, Duck, Dip, Dive and... Dodge. If you master the five D's, no amount of balls on earth can hit you.",
+  "postfix": "\n\nI ain't crazy, and I ain't a guy! I'm Patches O'Houlihan Bot |[Contact dev](https://www.reddit.com/message/compose/?to=ramsay1&subject=patchesohoulihanbot)|[Src](https://github.com/grantramsay/reddit-canned-response-bot)|",
+  "max_comments_per_submission": 2,
   "canned_responses": [
     {
       "search_keys": [
@@ -95,9 +98,6 @@
       "response": "> Just remember the five D's of dodgeball: Dodge, Duck, Dip, Dive and... Dodge. If you master the five D's, no amount of balls on earth can hit you."
     }
   ],
-  "comment_mention_reply": "> Just remember the five D's of dodgeball: Dodge, Duck, Dip, Dive and... Dodge. If you master the five D's, no amount of balls on earth can hit you.",
-  "postfix": "\n\nI ain't crazy, and I ain't a guy! I'm Patches O'Houlihan Bot (u/ramsay1)",
-  "max_comments_per_submission": 2,
   "tests": [
     {
       "comment": "",

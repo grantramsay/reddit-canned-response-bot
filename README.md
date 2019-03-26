@@ -25,6 +25,8 @@ Username mentions just use praw to check unread inbox messages.
       "subreddits": [
         "all"
       ],
+      "postfix": "\n\nI am a bot (u/mymainaccountname)",
+      "max_comments_per_submission": 100,
       "canned_responses": [
         {
           "search_keys": [
@@ -35,9 +37,7 @@ Username mentions just use praw to check unread inbox messages.
           ],
           "response": "https://i.imgur.com/XLSOusb.png"
         }
-      ],
-      "postfix": "\n\nI am a bot (u/mymainaccountname)",
-      "max_comments_per_submission": 100
+      ]
     }
     ```
 

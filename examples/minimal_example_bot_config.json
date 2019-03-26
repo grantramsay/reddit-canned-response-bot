@@ -2,6 +2,8 @@
   "subreddits": [
     "all"
   ],
+  "postfix": "\n\nI am a bot (u/mymainaccountname)",
+  "max_comments_per_submission": 100,
   "canned_responses": [
     {
       "search_keys": [
@@ -12,7 +14,5 @@
       ],
       "response": "https://i.imgur.com/XLSOusb.png"
     }
-  ],
-  "postfix": "\n\nI am a bot (u/mymainaccountname)",
-  "max_comments_per_submission": 100
+  ]
 }

@@ -3,6 +3,9 @@
     "test",
     "funny"
   ],
+  "comment_mention_reply": "You called?",
+  "postfix": "\n\nI am a bot |[Contact dev](https://www.reddit.com/message/compose/?to=mymainaccountname&subject=examplebot)|[Src](https://github.com/grantramsay/reddit-canned-response-bot)|",
+  "max_comments_per_submission": 2,
   "canned_responses": [
     {
       "search_keys": [
@@ -28,9 +31,6 @@
       "max_chars": 50
     }
   ],
-  "comment_mention_reply": "You called?",
-  "postfix": "\n\nI am a bot (u/mymainaccountname)",
-  "max_comments_per_submission": 2,
   "tests": [
     {
       "comment": "This is lame",
