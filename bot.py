@@ -120,7 +120,10 @@ class Bot:
 
         for message in unread_messages:
             if isinstance(message, praw.models.Comment):
-                self._handle_comment_mention(message)
+                if message.subject == 'username mention':
+                    self._handle_comment_mention(message)
+                elif message.subject == 'comment reply':
+                    self._handle_comment_reply(message)
             elif isinstance(message, praw.models.Message):
                 self._handle_direct_message(message)
 
@@ -173,9 +176,14 @@ class Bot:
                 self._comment_log_txt(comment), response))
             self._send_reply(comment, response)
 
+    def _handle_comment_reply(self, comment: praw.models.Comment):
+        # Comment replies are not currently handled.
+        log.info('Received comment reply: {}'.format(self._comment_log_txt(comment)))
+
+    # noinspection PyMethodMayBeStatic
     def _handle_direct_message(self, message: praw.models.Message):
         # Direct messages are not currently handled.
-        pass
+        log.info('Received direct message: {} {}'.format(message.id, message.body))
 
     def _can_reply_to_comment(self, comment: praw.models.Comment) -> bool:
         if not comment.author or comment.author == self.bot_username:
