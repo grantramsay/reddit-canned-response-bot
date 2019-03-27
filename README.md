@@ -27,6 +27,7 @@ Username mentions just use praw to check unread inbox messages.
       ],
       "postfix": "\n\nI am a bot (u/mymainaccountname)",
       "max_comments_per_submission": 100,
+      "delete_unliked_comment_score": -5,
       "canned_responses": [
         {
           "search_keys": [

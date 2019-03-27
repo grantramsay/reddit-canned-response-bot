@@ -21,6 +21,7 @@ from typing import Dict, List, Optional, Union
 import unittest
 
 DEFAULT_MAX_COMMENTS_PER_SUBMISSION = 2
+DEFAULT_DELETE_UNLIKED_COMMENT_SCORE = -5
 
 log = logging.getLogger('bot_log')
 log.setLevel(logging.DEBUG)
@@ -81,22 +82,25 @@ class Bot:
 
     def __init__(self, pushshift: psaw.PushshiftAPI, reply_generator: ReplyGenerator, subreddit_names: List[str],
                  max_comments_per_submission: int = DEFAULT_MAX_COMMENTS_PER_SUBMISSION,
-                 dry_run: bool = False, start_time_subtract_hours: int = 0):
+                 delete_unliked_comment_score: int = DEFAULT_DELETE_UNLIKED_COMMENT_SCORE,
+                 dry_run: bool = False, start_time_offset_hours: int = 0):
         self.pushshift = pushshift
         self.praw = pushshift.r  # type: praw.Reddit
         self.reply_generator = reply_generator
-        first_query_time_utc = int(datetime.utcnow().replace(tzinfo=timezone.utc).timestamp() -
-                                   start_time_subtract_hours * 3600)
+        first_query_time_utc = int(datetime.utcnow().replace(tzinfo=timezone.utc).timestamp() +
+                                   start_time_offset_hours * 3600)
         self.subreddits = list(Bot.SubredditInfo(name, first_query_time_utc) for name in subreddit_names)
         self.max_comments_per_submission = max_comments_per_submission
         self.dry_run = dry_run
-        self.bot_username = self.praw.config.username
+        self.bot_user = self.praw.user.me()
+        assert delete_unliked_comment_score < 1, "Comments would be deleted straight away.."
+        self.delete_unliked_comment_score = delete_unliked_comment_score
         self.search_query = '|'.join(reply_generator.search_keys)
         self._load_commented_items()
 
     def _load_commented_items(self):
         # Keeps track of what we've recently commented on to avoid duplicate/spamming responses.
-        self.commented_items_filename = self.bot_username + '_commented_items.json'
+        self.commented_items_filename = self.bot_user.name + '_commented_items.json'
         commented_items = {}
         if os.path.isfile(self.commented_items_filename):
             with open(self.commented_items_filename) as f:
@@ -162,6 +166,15 @@ class Bot:
 
         return handled_all_comments
 
+    def _delete_unliked_comments(self):
+        comments = self.bot_user.comments.new(limit=25)
+        for comment in comments:
+            if comment.author and comment.score <= self.delete_unliked_comment_score:
+                log.info('Deleting unliked comment (score {}): {}'.format(
+                    comment.score, self._comment_log_txt(comment)))
+                if not self.dry_run:
+                    comment.delete()
+
     def _handle_scraped_comment(self, comment: praw.models.Comment):
         response = self.reply_generator.get_response(comment.body)
         if response and self._can_reply_to_comment(comment):
@@ -186,7 +199,7 @@ class Bot:
         log.info('Received direct message: {} {}'.format(message.id, message.body))
 
     def _can_reply_to_comment(self, comment: praw.models.Comment) -> bool:
-        if not comment.author or comment.author == self.bot_username:
+        if not comment.author or comment.author == self.bot_user.name:
             # Don't reply to yourself...
             return False
 
@@ -220,6 +233,8 @@ class Bot:
                 handled_all_comments = True
                 if self.search_query:
                     handled_all_comments = self._scrape_and_handle_comments()
+                # Don't really have to do this every loop, but shouldn't hurt.
+                self._delete_unliked_comments()
             except Exception as e:
                 log.warning('Crash!!\n{}'.format(e))
                 ratelimit = parse.search('try again in {:d} minutes', str(e))
@@ -294,10 +309,11 @@ def main():
         log.setLevel(logging.DEBUG)  # Restore log output
 
     max_comments_per_submission = bot_config.get('max_comments_per_submission', DEFAULT_MAX_COMMENTS_PER_SUBMISSION)
+    delete_unliked_comment_score = bot_config.get('delete_unliked_comment_score', DEFAULT_DELETE_UNLIKED_COMMENT_SCORE)
     dry_run = arguments.dry_run is not None
-    start_time_subtract_hours = 0 if arguments.dry_run is None else arguments.dry_run
+    start_time_offset_hours = 0 if arguments.dry_run is None else -arguments.dry_run
     bot = Bot(pushshift, reply_generator, bot_config['subreddits'], max_comments_per_submission,
-              dry_run=dry_run, start_time_subtract_hours=start_time_subtract_hours)
+              delete_unliked_comment_score, dry_run=dry_run, start_time_offset_hours=start_time_offset_hours)
     bot.run()
 
 
